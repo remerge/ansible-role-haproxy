@@ -52,8 +52,6 @@
         name: haproxy_connect_any
         state: yes
         persistent: yes
-      notify:
-        - Reboot
 
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
