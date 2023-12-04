@@ -55,6 +55,14 @@
       - haproxy_maxconn > 0
     quiet: yes
 
+- name: assert | Test haproxy_global_maxconn
+  ansible.builtin.assert:
+    that:
+      - haproxy_global_maxconn is defined
+      - haproxy_global_maxconn is number
+      - haproxy_global_maxconn > 0
+    quiet: yes
+
 - name: assert | Test haproxy_frontends
   ansible.builtin.assert:
     that:
