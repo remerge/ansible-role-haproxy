@@ -133,6 +133,7 @@ The default values for the variables are set in [`defaults/main.yml`](https://gi
 ```yaml
 ---
 # defaults file for haproxy
+haproxy_additional_host_configs: []
 
 # Configure stats in HAProxy?
 haproxy_stats: yes
