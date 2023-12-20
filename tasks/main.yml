@@ -4,7 +4,7 @@
 - name: Import assert.yml
   ansible.builtin.import_tasks:
     file: assert.yml
-  run_once: yes
+  run_once: true
   delegate_to: localhost
 
 - name: Install haproxy
@@ -15,13 +15,13 @@
 - name: Create group
   ansible.builtin.group:
     name: haproxy
-    system: yes
+    system: true
     state: present
 
 - name: Create user
   ansible.builtin.user:
     name: haproxy
-    system: yes
+    system: true
     state: present
 
 - name: Configure software
@@ -32,6 +32,66 @@
     mode: "0640"
   notify:
     - Restart haproxy
+
+- name: Copy additional haproxy configuration
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "/etc/haproxy/conf.d/{{ item.name }}.cfg"
+    owner: haproxy
+    group: haproxy
+    mode: "0644"
+  notify:
+    - Test Config
+    - Reload haproxy
+  with_items: "{{ haproxy_additional_host_configs }}"
+
+- name: Create list of specified additional haproxy configuration
+  ansible.builtin.set_fact:
+    specified_config: "{{ specified_config | default([]) + [item.name + '.cfg'] }}"
+  with_items: "{{ haproxy_additional_host_configs }}"
+
+- name: Capture unwanted files
+  ansible.builtin.find:
+    paths: "/etc/haproxy/conf.d/"
+    file_type: file
+    excludes: "{{ specified_config | default([]) }}"
+  register: unwanted_files
+
+- name: Delete unwanted files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ unwanted_files['files'] }}"
+  notify:
+    - Test Config
+    - Reload haproxy
+
+- name: Create log directory if it does not exist
+  ansible.builtin.file:
+    path: "/var/lib/haproxy/dev/"
+    state: directory
+    mode: "0755"
+    owner: "haproxy"
+    group: "haproxy"
+
+- name: Ensure empty file is availble to bind mount log socket
+  ansible.builtin.file:
+    state: touch
+    path: "/var/lib/haproxy/dev/log"
+    access_time: preserve
+    modification_time: preserve
+    mode: "0755"
+
+- name: Make log socket available to chrooted filesystem
+  ansible.posix.mount:
+    src: "/dev/log"
+    path: "/var/lib/haproxy/dev/log"
+    opts: bind
+    state: mounted
+    fstype: none
+  notify:
+    - Test Config
+    - Reload haproxy
 
 - name: Modify selinux settings
   when:
@@ -50,8 +110,8 @@
     - name: Allow haproxy to open any port
       ansible.posix.seboolean:
         name: haproxy_connect_any
-        state: yes
-        persistent: yes
+        state: true
+        persistent: true
 
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
@@ -60,4 +120,4 @@
   ansible.builtin.service:
     name: haproxy
     state: started
-    enabled: yes
+    enabled: true

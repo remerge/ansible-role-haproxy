@@ -1,5 +1,4 @@
 ---
-
 - name: assert | Test haproxy_stats
   ansible.builtin.assert:
     that:
@@ -305,3 +304,17 @@
     label: "{{ item.name }}"
   when:
     - item.httpcheck is defined
+
+- name: assert | Test item in haproxy_additional_host_configs
+  ansible.builtin.assert:
+    that:
+      - item.name is defined
+      - item.name is string
+      - item.name is not none
+      - item.src is defined
+      - item.src is string
+      - item.src is not none
+    quiet: yes
+  loop: "{{ haproxy_additional_host_configs }}"
+  loop_control:
+    label: "{{ item.name }}"

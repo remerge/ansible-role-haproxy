@@ -29,10 +29,10 @@
   post_tasks:
     - name: Place health check
       ansible.builtin.copy:
-        content: 'ok'
+        content: "ok"
         dest: "{{ httpd_data_directory }}/health.html"
 
     - name: Place sample page
       ansible.builtin.copy:
-        content: 'Hello world!'
+        content: "Hello world!"
         dest: "{{ httpd_data_directory }}/index.html"
