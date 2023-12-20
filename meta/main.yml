@@ -1,33 +1,8 @@
 ---
 galaxy_info:
-  author: robertdebock
-  role_name: haproxy
-  description: Install and configure haproxy on your system.
-  license: Apache-2.0
-  company: none
-  min_ansible_version: "2.12"
-
-  platforms:
-    - name: EL
-      versions:
-        - "8"
-        - "9"
-    - name: Debian
-      versions:
-        - all
-    - name: Fedora
-      versions:
-        - all
-    - name: opensuse
-      versions:
-        - all
-    - name: Ubuntu
-      versions:
-        - all
-
-  galaxy_tags:
-    - cloud
-    - haproxy
-    - networking
-
-dependencies: []
+  role_name: ansible_role_haproxy
+  description: Ansible role for Haproxy
+  license: apache-2.0
+  author: remerge
+  company: remerge.io
+  min_ansible_version: "2.14"

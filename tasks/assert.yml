@@ -1,5 +1,4 @@
 ---
-
 - name: assert | Test haproxy_stats
   ansible.builtin.assert:
     that:
