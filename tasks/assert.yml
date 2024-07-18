@@ -318,3 +318,11 @@
   loop: "{{ haproxy_additional_host_configs }}"
   loop_control:
     label: "{{ item.name }}"
+
+- name: assert | Test haproxy_global_bufsize
+  ansible.builtin.assert:
+    that:
+      - haproxy_global_bufsize is defined
+      - haproxy_global_bufsize is number
+      - haproxy_global_bufsize > 16383
+    quiet: yes
