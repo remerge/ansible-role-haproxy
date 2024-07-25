@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  role_name: ansible_role_haproxy
+  role_name: haproxy
   description: Ansible role for Haproxy
   license: apache-2.0
   author: remerge

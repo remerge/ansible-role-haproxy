@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "ansible_role_haproxy"
+name = "ansible-role-haproxy"
 version = "0.0.0"
 description = "Ansible role for Haproxy"
 authors = ["Remerge GmbH <core@remerge.io>"]

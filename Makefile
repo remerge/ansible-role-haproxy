@@ -1,5 +1,5 @@
-PROJECT_ID := Ansible role for Haproxy
-PROJECT_NAME := ansible-role-haproxy
+PROJECT_ID := ansible-role-haproxy
+PROJECT_NAME := Ansible role for Haproxy
 PROJECT_REPO := github.com/remerge/$(PROJECT_ID)
 
 # Provide local development fallbacks if there are no CI variables
