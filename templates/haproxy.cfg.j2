@@ -10,7 +10,7 @@ global
     daemon
     stats           socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners
     {% if haproxy_global_bufsize is defined %}
-    tune.bufsize    {{ haproxy_global_bufsize }} 
+    tune.bufsize    {{ haproxy_global_bufsize }}
     {% endif %}
 
 
