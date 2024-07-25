@@ -1,8 +1,8 @@
 ---
 # Changes here will be overwritten by Copier
-_commit: v2.8.3
+_commit: v2.25.1
 _src_path: gh:remerge/template
-project_id: ansible_role_haproxy
+project_id: ansible-role-haproxy
 project_license: apache-2.0
 project_name: Ansible role for Haproxy
 project_owner: core

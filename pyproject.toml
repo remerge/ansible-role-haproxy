@@ -1,20 +1,19 @@
 [tool.poetry]
-name = "Ansible role for Haproxy"
+name = "ansible-role-haproxy"
 version = "0.0.0"
-description = "ansible-role-haproxy"
+description = "Ansible role for Haproxy"
 authors = ["Remerge GmbH <core@remerge.io>"]
+package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.10, < 3.12"
+python = "^3.10, < 3.13"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.11.0"
-flake8 = "^6.1.0"
-flake8-bugbear = "^23.12.2"
-pylint = "^3.0.2"
-tox = "^4.11.4"
-molecule = { extras = ["docker"], version = "^6.0.2" }
-ansible-lint = { version = "^6.22.1", markers = "platform_system != 'Windows'" }
+black = "^24.4.2"
+flake8 = "^7.1.0"
+flake8-bugbear = "^24.4.26"
+pylint = "^3.2.5"
+ansible-lint = { version = "^24.7.0", markers = "platform_system != 'Windows'" }
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
