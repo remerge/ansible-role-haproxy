@@ -54,14 +54,6 @@
       - haproxy_maxconn > 0
     quiet: yes
 
-- name: assert | Test haproxy_global_maxconn
-  ansible.builtin.assert:
-    that:
-      - haproxy_global_maxconn is defined
-      - haproxy_global_maxconn is number
-      - haproxy_global_maxconn > 0
-    quiet: yes
-
 - name: assert | Test haproxy_frontends
   ansible.builtin.assert:
     that:
@@ -304,11 +296,3 @@
     label: "{{ item.name }}"
   when:
     - item.httpcheck is defined
-
-- name: assert | Test haproxy_global_bufsize
-  ansible.builtin.assert:
-    that:
-      - haproxy_global_bufsize is defined
-      - haproxy_global_bufsize is number
-      - haproxy_global_bufsize > 16383
-    quiet: yes
