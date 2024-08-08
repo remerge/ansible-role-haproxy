@@ -1,7 +1,7 @@
 {{ ansible_managed | comment }}
 
 global
-    log         stdout format raw daemon
+    log         stdout format raw daemon crit
     chroot      /var/lib/haproxy
     pidfile     /var/run/haproxy.pid
     user        haproxy
