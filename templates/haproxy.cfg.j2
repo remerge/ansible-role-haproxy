@@ -1,13 +1,12 @@
 {{ ansible_managed | comment }}
 
 global
-    log             /dev/log  local0 debug
-    chroot          /var/lib/haproxy
-    pidfile         /var/run/haproxy.pid
-    user            haproxy
-    group           haproxy
-    daemon
-    stats           socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners
+    log         stdout format raw daemon
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    user        haproxy
+    group       haproxy
+    stats       socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners
 {% for key, value in haproxy_global_config %}
     {{ key }} {{ value }}
 {% endfor %}
@@ -18,10 +17,9 @@ defaults
     option                  httplog
     option                  dontlognull
     option                  dontlog-normal
-    option                  log-separate-errors
+    option                  http-keep-alive
     option                  forwardfor except 127.0.0.0/8
     option                  redispatch
-    option                  http-keep-alive
     retries                 {{ haproxy_retries }}
     timeout http-request    {{ haproxy_timeout_http_request }}
     timeout queue           {{ haproxy_timeout_check }}
@@ -37,8 +35,7 @@ listen stats
     bind                 {{ haproxy_stats_bind_addr }}:{{ haproxy_stats_port }}
     mode                 http
     option               http-use-htx
-    option               dontlog-normal
-    http-request use-service prometheus-exporter if { path /metrics }
+    http-request         use-service prometheus-exporter if { path /metrics }
     stats                enable
     stats                uri /stats
 {% endif %}

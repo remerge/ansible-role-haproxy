@@ -9,7 +9,7 @@ haproxy_stats_bind_addr: "0.0.0.0"
 # Global settings for HAProxy.
 haproxy_global_config: {}
 
-# Default settings for HAProxy.
+# Default setttings for HAProxy.
 haproxy_retries: 3
 haproxy_timeout_http_request: 10s
 haproxy_timeout_connect: 10s
