@@ -2,7 +2,7 @@
 # defaults file for haproxy
 
 # Configure stats in HAProxy?
-haproxy_stats: yes
+haproxy_stats: true
 haproxy_stats_port: 1936
 haproxy_stats_bind_addr: "0.0.0.0"
 
@@ -19,7 +19,7 @@ haproxy_timeout_http_keep_alive: 10s
 haproxy_timeout_check: 10s
 haproxy_maxconn: 3000
 
-# A list of frontends. See `molecule/
+# A list of frontends. See `molecule/default/converge.yml` for an example.
 haproxy_frontends: []
 haproxy_backend_default_balance: roundrobin
 haproxy_backends: []
