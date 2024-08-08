@@ -74,7 +74,3 @@ argument_specs:
         type: "int"
         default: 6000
         description: "The global maximum number of connections."
-      haproxy_additional_host_configs:
-        type: "list"
-        default: []
-        description: "A list of additional configuration details."
