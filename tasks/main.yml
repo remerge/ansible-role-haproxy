@@ -7,10 +7,26 @@
   run_once: true
   delegate_to: localhost
 
-- name: Install haproxy
+- name: Add repository for HAProxy 3.0
+  ansible.builtin.yum_repository:
+    name: zenetys-latest
+    description: "Packages by ZENETYS for Enterprise Linux $releasever - $basearch (latest)"
+    baseurl: "https://packages.zenetys.com/latest/redhat/$releasever/RPMS/$basearch"
+    gpgcheck: false
+
+- name: Uninstall legacy haproxy
   ansible.builtin.package:
     name: haproxy
+    state: absent
+  notify:
+    - Restart haproxy
+
+- name: Install haproxy
+  ansible.builtin.package:
+    name: haproxy30z+quic
     state: present
+  notify:
+    - Restart haproxy
 
 - name: Create group
   ansible.builtin.group:
@@ -28,70 +44,11 @@
   ansible.builtin.template:
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
-    validate: haproxy -c -f %s
+    # validate: haproxy -c -f %s
     mode: "0640"
+    backup: true
   notify:
     - Restart haproxy
-
-- name: Copy additional haproxy configuration
-  ansible.builtin.copy:
-    src: "{{ item.src }}"
-    dest: "/etc/haproxy/conf.d/{{ item.name }}.cfg"
-    owner: haproxy
-    group: haproxy
-    mode: "0644"
-  notify:
-    - Test Config
-    - Reload haproxy
-  with_items: "{{ haproxy_additional_host_configs }}"
-
-- name: Create list of specified additional haproxy configuration
-  ansible.builtin.set_fact:
-    specified_config: "{{ specified_config | default([]) + [item.name + '.cfg'] }}"
-  with_items: "{{ haproxy_additional_host_configs }}"
-
-- name: Capture unwanted files
-  ansible.builtin.find:
-    paths: "/etc/haproxy/conf.d/"
-    file_type: file
-    excludes: "{{ specified_config | default([]) }}"
-  register: unwanted_files
-
-- name: Delete unwanted files
-  ansible.builtin.file:
-    path: "{{ item.path }}"
-    state: absent
-  with_items: "{{ unwanted_files['files'] }}"
-  notify:
-    - Test Config
-    - Reload haproxy
-
-- name: Create log directory if it does not exist
-  ansible.builtin.file:
-    path: "/var/lib/haproxy/dev/"
-    state: directory
-    mode: "0755"
-    owner: "haproxy"
-    group: "haproxy"
-
-- name: Ensure empty file is availble to bind mount log socket
-  ansible.builtin.file:
-    state: touch
-    path: "/var/lib/haproxy/dev/log"
-    access_time: preserve
-    modification_time: preserve
-    mode: "0755"
-
-- name: Make log socket available to chrooted filesystem
-  ansible.posix.mount:
-    src: "/dev/log"
-    path: "/var/lib/haproxy/dev/log"
-    opts: bind
-    state: mounted
-    fstype: none
-  notify:
-    - Test Config
-    - Reload haproxy
 
 - name: Modify selinux settings
   when:
@@ -112,6 +69,8 @@
         name: haproxy_connect_any
         state: true
         persistent: true
+      notify:
+        - Reboot
 
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers

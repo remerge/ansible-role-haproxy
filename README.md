@@ -1,10 +1,10 @@
-# [haproxy](#haproxy)
+# [Ansible role haproxy](#haproxy)
 
 Install and configure haproxy on your system.
 
-| GitHub                                                                                                                                                                 | GitLab                                                                                                                                                     | Downloads                                                                                                    | Version                                                                                                                                                   |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![github](https://github.com/robertdebock/ansible-role-haproxy/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-haproxy/actions) | [![gitlab](https://gitlab.com/robertdebock-iac/ansible-role-haproxy/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-haproxy) | [![downloads](https://img.shields.io/ansible/role/d/24509)](https://galaxy.ansible.com/robertdebock/haproxy) | [![Version](https://img.shields.io/github/release/robertdebock/ansible-role-haproxy.svg)](https://github.com/robertdebock/ansible-role-haproxy/releases/) |
+| GitHub                                                                                                                                                                 | GitLab                                                                                                                                                     | Downloads                                                                                                                   | Version                                                                                                                                                   |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [![github](https://github.com/robertdebock/ansible-role-haproxy/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-haproxy/actions) | [![gitlab](https://gitlab.com/robertdebock-iac/ansible-role-haproxy/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-haproxy) | [![downloads](https://img.shields.io/ansible/role/d/robertdebock/haproxy)](https://galaxy.ansible.com/robertdebock/haproxy) | [![Version](https://img.shields.io/github/release/robertdebock/ansible-role-haproxy.svg)](https://github.com/robertdebock/ansible-role-haproxy/releases/) |
 
 ## [Example Playbook](#example-playbook)
 
@@ -14,8 +14,8 @@ This example is taken from [`molecule/default/converge.yml`](https://github.com/
 ---
 - name: Converge
   hosts: all
-  become: yes
-  gather_facts: yes
+  become: true
+  gather_facts: true
 
   roles:
     - role: robertdebock.haproxy
@@ -28,7 +28,7 @@ This example is taken from [`molecule/default/converge.yml`](https://github.com/
           address: "*"
           port: 443
           default_backend: backend
-          ssl: yes
+          ssl: true
           crts:
             - /tmp/haproxy.keycrt
         - name: smtp
@@ -36,10 +36,16 @@ This example is taken from [`molecule/default/converge.yml`](https://github.com/
           port: 25
           default_backend: smtp
           mode: tcp
+        - name: prometheus
+          address: "*"
+          port: 8405
+          mode: http
+          http_request: use-service prometheus-exporter
+          no_log: true
       haproxy_backend_default_balance: roundrobin
       haproxy_backends:
         - name: backend
-          httpcheck: yes
+          httpcheck: true
           # You can tell how the health check must be done.
           # This requires haproxy version 2
           # http_check:
@@ -66,11 +72,22 @@ This example is taken from [`molecule/default/converge.yml`](https://github.com/
               address: "127.0.0.2"
               port: 25
           port: 25
+        - name: vault
+          mode: tcp
+          httpcheck: GET /v1/sys/health HTTP/1.1
+          servers: "{{ groups['all'] }}"
+          http_send_name_header: Host
+          port: 8200
+          options:
+            - check
+            - check-ssl
+            - ssl verify none
+
       haproxy_listen_default_balance: roundrobin
       haproxy_listens:
         - name: listen
           address: "*"
-          httpcheck: yes
+          httpcheck: true
           listen_port: 8081
           balance: roundrobin
           # You can refer to hosts in an Ansible group.
@@ -87,8 +104,8 @@ The machine needs to be prepared. In CI this is done using [`molecule/default/pr
 ---
 - name: Prepare
   hosts: all
-  become: yes
-  gather_facts: no
+  become: true
+  gather_facts: false
 
   roles:
     - role: robertdebock.bootstrap
@@ -133,10 +150,9 @@ The default values for the variables are set in [`defaults/main.yml`](https://gi
 ```yaml
 ---
 # defaults file for haproxy
-haproxy_additional_host_configs: []
 
 # Configure stats in HAProxy?
-haproxy_stats: yes
+haproxy_stats: true
 haproxy_stats_port: 1936
 haproxy_stats_bind_addr: "0.0.0.0"
 
@@ -150,7 +166,7 @@ haproxy_timeout_http_keep_alive: 10s
 haproxy_timeout_check: 10s
 haproxy_maxconn: 3000
 
-# A list of frontends. See `molecule/
+# A list of frontends. See `molecule/default/converge.yml` for an example.
 haproxy_frontends: []
 haproxy_backend_default_balance: roundrobin
 haproxy_backends: []
@@ -189,13 +205,12 @@ Here is an overview of related roles:
 
 This role has been tested on these [container images](https://hub.docker.com/u/robertdebock):
 
-| container                                                                           | tags |
-| ----------------------------------------------------------------------------------- | ---- |
-| [EL](https://hub.docker.com/repository/docker/robertdebock/enterpriselinux/general) | 8, 9 |
-| [Debian](https://hub.docker.com/repository/docker/robertdebock/debian/general)      | all  |
-| [Fedora](https://hub.docker.com/repository/docker/robertdebock/fedora/general)      | all  |
-| [opensuse](https://hub.docker.com/repository/docker/robertdebock/opensuse/general)  | all  |
-| [Ubuntu](https://hub.docker.com/repository/docker/robertdebock/ubuntu/general)      | all  |
+| container                                                   | tags   |
+| ----------------------------------------------------------- | ------ |
+| [EL](https://hub.docker.com/r/robertdebock/enterpriselinux) | 9      |
+| [Debian](https://hub.docker.com/r/robertdebock/debian)      | all    |
+| [Fedora](https://hub.docker.com/r/robertdebock/fedora)      | 39, 40 |
+| [Ubuntu](https://hub.docker.com/r/robertdebock/ubuntu)      | all    |
 
 The minimum version of Ansible required is 2.12, tests have been done to:
 
