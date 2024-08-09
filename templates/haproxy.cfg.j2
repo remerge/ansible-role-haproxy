@@ -1,9 +1,8 @@
 {{ ansible_managed | comment }}
 
 global
-    log         stdout format raw daemon crit
+    log         stdout format raw daemon
     chroot      /var/lib/haproxy
-    pidfile     /var/run/haproxy.pid
     user        haproxy
     group       haproxy
     stats       socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners
@@ -34,7 +33,6 @@ defaults
 listen stats
     bind                 {{ haproxy_stats_bind_addr }}:{{ haproxy_stats_port }}
     mode                 http
-    option               http-use-htx
     http-request         use-service prometheus-exporter if { path /metrics }
     stats                enable
     stats                uri /stats

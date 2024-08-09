@@ -7,10 +7,26 @@
   run_once: true
   delegate_to: localhost
 
-- name: Install haproxy
+- name: Add repository for HAProxy 3.0
+  ansible.builtin.yum_repository:
+    name: zenetys-latest
+    description: "Packages by ZENETYS for Enterprise Linux $releasever - $basearch (latest)"
+    baseurl: "https://packages.zenetys.com/latest/redhat/$releasever/RPMS/$basearch"
+    gpgcheck: false
+
+- name: Uninstall legacy haproxy
   ansible.builtin.package:
     name: haproxy
+    state: absent
+  notify:
+    - Restart haproxy
+
+- name: Install haproxy
+  ansible.builtin.package:
+    name: haproxy30z+quic
     state: present
+  notify:
+    - Restart haproxy
 
 - name: Create group
   ansible.builtin.group:
