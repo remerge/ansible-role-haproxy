@@ -15,12 +15,6 @@ repos:
       - id: check-added-large-files
       - id: check-case-conflict
       - id: check-executables-have-shebangs
-      - id: check-json
-        exclude: |
-          (?x)^(
-              \.vscode/.*\.json|
-              \.eslintrc\.json
-          )$
       - id: check-merge-conflict
       - id: check-shebang-scripts-are-executable
       - id: check-symlinks
@@ -84,7 +78,7 @@ repos:
 
   # https://github.com/bridgecrewio/checkov/tags
   - repo: https://github.com/bridgecrewio/checkov
-    rev: "3.2.183"
+    rev: "3.2.217"
     hooks:
       - id: checkov
         name: checkov

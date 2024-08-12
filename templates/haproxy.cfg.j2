@@ -1,18 +1,14 @@
 {{ ansible_managed | comment }}
 
 global
-    log             /dev/log  local0 debug
-    chroot          /var/lib/haproxy
-    pidfile         /var/run/haproxy.pid
-    maxconn         {{ haproxy_global_maxconn }}
-    user            haproxy
-    group           haproxy
-    daemon
-    stats           socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners
-    {% if haproxy_global_bufsize is defined %}
-    tune.bufsize    {{ haproxy_global_bufsize }}
-    {% endif %}
-
+    log         stdout format raw daemon
+    chroot      /var/lib/haproxy
+    user        haproxy
+    group       haproxy
+    stats       socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners
+{% for key, value in haproxy_global_config.items() %}
+    {{ key }} {{ value }}
+{% endfor %}
 
 defaults
     mode                    http
@@ -20,10 +16,9 @@ defaults
     option                  httplog
     option                  dontlognull
     option                  dontlog-normal
-    option                  log-separate-errors
+    option                  http-keep-alive
     option                  forwardfor except 127.0.0.0/8
     option                  redispatch
-    option                  http-keep-alive
     retries                 {{ haproxy_retries }}
     timeout http-request    {{ haproxy_timeout_http_request }}
     timeout queue           {{ haproxy_timeout_check }}
@@ -36,27 +31,36 @@ defaults
 
 {% if haproxy_stats == true %}
 listen stats
-    bind                 {{haproxy_stats_bind_addr }}:{{ haproxy_stats_port }}
+    bind                 {{ haproxy_stats_bind_addr }}:{{ haproxy_stats_port }}
     mode                 http
-    option               http-use-htx
-    option               dontlog-normal
-    http-request use-service prometheus-exporter if { path /metrics }
+    http-request         use-service prometheus-exporter if { path /metrics }
     stats                enable
     stats                uri /stats
 {% endif %}
 
 {% for frontend in haproxy_frontends %}
 frontend {{ frontend.name }}
-    bind {{ frontend.address }}:{{ frontend.port }}{% if frontend.ssl is defined and frontend.ssl == true %} ssl{% endif %}{% if frontend.crts is defined and frontend.crts | length >0 %}{% for crt in frontend.crts %} crt {{ crt }}{% endfor %}{% endif %}
+    bind {{ frontend.address }}:{{ frontend.port }}{% if frontend.ssl is defined and frontend.ssl == true %} ssl{% endif %}{% if frontend.crts is defined and frontend.crts | length > 0 %} {% for crt in frontend.crts %} crt {{ crt }}{% endfor %}{% endif %}
 
+{% if frontend.default_backend is defined %}
     default_backend {{ frontend.default_backend }}
+{% endif %}
     mode {{ frontend.mode | default('http') }}
     option {{ frontend.option | default('httplog') }}
+{% if frontend.http_request is defined %}
+    http-request {{ frontend.http_request }}
+{% endif %}
+{% if frontend.no_log is defined and frontend.no_log %}
+    no log
+{% endif %}
 {% endfor %}
+
 {% for backend in haproxy_backends %}
 backend {{ backend.name }}
-{% if backend.httpcheck is defined and backend.httpcheck %}
+{% if backend.httpcheck is defined and backend.httpcheck_method is defined and backend.httpcheck %}
     option httpchk {% if backend.httpcheck_method is defined %}{{ backend.httpcheck_method }}{% endif %}
+{% elif backend.httpcheck is defined and backend.httpcheck %}
+    option httpchk
 {% endif %}
 
 {% if backend.http_check is defined %}
@@ -65,17 +69,18 @@ backend {{ backend.name }}
 {% endif %}
     balance {{ backend.balance | default(haproxy_backend_default_balance) }}
     mode {{ backend.mode | default('http') }}
+{% if backend.http_send_name_header is defined %}
+    http-send-name-header {{ backend.http_send_name_header }}
+{% endif %}
 {% for server in backend.servers %}
 {% if server.name is defined %}
     server {{ server.name }} {{ server.address | default(hostvars[server.name]['ansible_default_ipv4']['address']) }}:{{ server.port | default(backend.port) }} {% if backend.options is defined %}{{ backend.options | join(' ') }}{% endif %}
-
 {% elif ansible_default_ipv4 is defined %}
     server {{ server }} {{ hostvars[server]['ansible_default_ipv4']['address'] }}:{{ backend.port }} {% if backend.options is defined %}{{ backend.options | join(' ') }}{% endif %}
-
 {% endif %}
-{% endfor %}
-{% endfor %}
 
+{% endfor %}
+{% endfor %}
 
 {% for listen in haproxy_listens %}
 listen {{ listen.name }}

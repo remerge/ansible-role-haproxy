@@ -1,0 +1,12 @@
+---
+matrix_overrides:
+  amazonlinux:
+    python:
+      - python:3.9
+      - python:3.10
+  fedora:
+    python:
+      - python:3.10
+  ubuntu:
+    python:
+      - python:3.10
