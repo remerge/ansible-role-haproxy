@@ -1,6 +1,9 @@
 ---
+default_language_version:
+  python: python3.12
+
 default_stages:
-  - commit
+  - pre-commit
 
 default_install_hook_types:
   - commit-msg
@@ -10,7 +13,7 @@ default_install_hook_types:
 repos:
   # https://github.com/pre-commit/pre-commit-hooks/tags
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: "v4.6.0"
+    rev: "v5.0.0"
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -37,18 +40,18 @@ repos:
         types: [text]
         exclude: "^project/"
         additional_dependencies:
-          - "prettier@3.3.3"
+          - "prettier@3.5.2"
 
   # https://github.com/igorshubovych/markdownlint-cli/tags
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: "v0.41.0"
+    rev: "v0.44.0"
     hooks:
       - id: markdownlint-fix
         name: markdownlint
 
   # https://github.com/adrienverge/yamllint/tags
   - repo: https://github.com/adrienverge/yamllint
-    rev: "v1.35.1"
+    rev: "v1.37.0"
     hooks:
       - id: yamllint
         entry: yamllint --strict
@@ -68,14 +71,14 @@ repos:
 
   # https://github.com/rhysd/actionlint/tags
   - repo: https://github.com/rhysd/actionlint
-    rev: "v1.7.1"
+    rev: "v1.7.7"
     hooks:
       - id: actionlint-docker
         name: actionlint
 
   # https://github.com/bridgecrewio/checkov/tags
   - repo: https://github.com/bridgecrewio/checkov
-    rev: "3.2.254"
+    rev: "3.2.407"
     hooks:
       - id: checkov
         name: checkov
@@ -96,7 +99,7 @@ repos:
 
   # https://github.com/ansible/ansible-lint/tags
   - repo: https://github.com/ansible/ansible-lint
-    rev: "v24.9.0"
+    rev: "v25.2.1"
     hooks:
       - id: ansible-lint
         name: ansible-lint

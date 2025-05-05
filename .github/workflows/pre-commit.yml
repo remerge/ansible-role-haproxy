@@ -29,6 +29,17 @@ jobs:
         # https://github.com/actions/checkout/releases
         uses: actions/checkout@v4
 
+      - name: Setup SSH agent
+        # https://github.com/webfactory/ssh-agent/releases
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: "${{ secrets.DEPLOY_USER_SSH_KEY }}"
+
+      - name: Enforce Git via SSH
+        run: |
+          curl -sL https://api.github.com/meta | jq -r '"github.com "+.ssh_keys[]' >> ~/.ssh/known_hosts
+          git config --global url."git@github.com:".insteadOf "https://github.com/"
+
       - name: Install poetry
         # https://github.com/snok/install-poetry/releases
         uses: snok/install-poetry@v1
@@ -37,7 +48,7 @@ jobs:
         # https://github.com/actions/setup-python/releases
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
           cache: "poetry"
 
       - name: Load envrc
