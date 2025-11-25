@@ -1,4 +1,4 @@
-# [Ansible role haproxy](#haproxy)
+# [Ansible role haproxy]
 
 Install and configure haproxy on your system.
 
@@ -55,7 +55,7 @@ This example is taken from [`molecule/default/converge.yml`](https://github.com/
           #   expect: status 200
           balance: roundrobin
           # You can refer to hosts in an Ansible group.
-          # The `ansible_default_ipv4` will be used as an address to connect to.
+          # The `ansible_facts['default_ipv4']` will be used as an address to connect to.
           servers: "{{ groups['all'] }}"
           port: 8080
           options:
@@ -91,7 +91,7 @@ This example is taken from [`molecule/default/converge.yml`](https://github.com/
           listen_port: 8081
           balance: roundrobin
           # You can refer to hosts in an Ansible group.
-          # The `ansible_default_ipv4` will be used as an address to connect to.
+          # The `facts['default_ipv4']` will be used as an address to connect to.
           servers: "{{ groups['all'] }}"
           port: 8080
           options:
@@ -117,7 +117,7 @@ The machine needs to be prepared. In CI this is done using [`molecule/default/pr
       openssl_key_directory: /tmp
       openssl_items:
         - name: haproxy
-          common_name: "{{ ansible_fqdn }}"
+          common_name: "{{ ansible_facts['fqdn'] }}"
     # This role is applied to serve as a mock "backend" server. See `molecule/default/verify.yml`.
     - role: robertdebock.httpd
       httpd_port: 8080
@@ -128,7 +128,7 @@ The machine needs to be prepared. In CI this is done using [`molecule/default/pr
       Alpine: /var/www/localhost/htdocs
       Suse: /srv/www/htdocs
 
-    httpd_data_directory: "{{ _httpd_data_directory[ansible_os_family] | default(_httpd_data_directory['default'] ) }}"
+    httpd_data_directory: "{{ _httpd_data_directory[ansible_facts['os_family']] | default(_httpd_data_directory['default'] ) }}"
   post_tasks:
     - name: Place health check
       ansible.builtin.copy:
