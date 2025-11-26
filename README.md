@@ -1,4 +1,4 @@
-# [Ansible role haproxy]
+# [Ansible role haproxy](#ansible-role-haproxy)
 
 Install and configure haproxy on your system.
 
@@ -91,7 +91,7 @@ This example is taken from [`molecule/default/converge.yml`](https://github.com/
           listen_port: 8081
           balance: roundrobin
           # You can refer to hosts in an Ansible group.
-          # The `facts['default_ipv4']` will be used as an address to connect to.
+          # The `ansible_facts['default_ipv4']` will be used as an address to connect to.
           servers: "{{ groups['all'] }}"
           port: 8080
           options:
@@ -255,7 +255,7 @@ The following roles are used to prepare a system. You can prepare your system in
 
 ## [Context](#context)
 
-This role is a part of many compatible roles. Have a look at [the documentation of these roles](https://robertdebock.nl/) for further information.
+This role is part of many compatible roles. Have a look at [the documentation of these roles](https://robertdebock.nl/) for further information.
 
 Here is an overview of related roles:
 ![dependencies](https://raw.githubusercontent.com/robertdebock/ansible-role-haproxy/png/requirements.png "Dependencies")
@@ -264,20 +264,20 @@ Here is an overview of related roles:
 
 This role has been tested on these [container images](https://hub.docker.com/u/robertdebock):
 
-| container                                                   | tags |
-| ----------------------------------------------------------- | ---- |
-| [EL](https://hub.docker.com/r/robertdebock/enterpriselinux) | 9    |
-| [Debian](https://hub.docker.com/r/robertdebock/debian)      | all  |
-| [Fedora](https://hub.docker.com/r/robertdebock/fedora)      | all  |
-| [Ubuntu](https://hub.docker.com/r/robertdebock/ubuntu)      | all  |
+| container                                                   | tags         |
+| ----------------------------------------------------------- | ------------ |
+| [EL](https://hub.docker.com/r/robertdebock/enterpriselinux) | 9            |
+| [Debian](https://hub.docker.com/r/robertdebock/debian)      | all          |
+| [Fedora](https://hub.docker.com/r/robertdebock/fedora)      | all          |
+| [Ubuntu](https://hub.docker.com/r/robertdebock/ubuntu)      | noble, jammy |
 
-The minimum version of Ansible required is 2.12, tests have been done to:
+The minimum version of Ansible required is 2.12, tests have been done on:
 
 - The previous version.
 - The current version.
 - The development version.
 
-If you find issues, please register them in [GitHub](https://github.com/robertdebock/ansible-role-haproxy/issues).
+If you find issues, please register them on [GitHub](https://github.com/robertdebock/ansible-role-haproxy/issues).
 
 ## [License](#license)
 
