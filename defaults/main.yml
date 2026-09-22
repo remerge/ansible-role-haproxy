@@ -79,6 +79,11 @@ haproxy_timeout_http_keep_alive: 10s
 haproxy_timeout_check: 10s
 haproxy_maxconn: 3000
 
+# A list of DNS resolvers sections. Each entry takes a `name`, a list of
+# `nameservers` ({name, address}) and an optional `settings` mapping rendered
+# as one directive per key, for example `hold valid: 10s`.
+haproxy_resolvers: []
+
 # A list of frontends. See `molecule/default/converge.yml` for an example.
 haproxy_frontends: []
 haproxy_backend_default_balance: roundrobin

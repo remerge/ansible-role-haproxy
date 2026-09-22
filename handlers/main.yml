@@ -8,3 +8,11 @@
   ansible.builtin.service:
     name: haproxy
     state: restarted
+
+# A configuration change is picked up by a reload, which hands the listening
+# sockets to the new process instead of dropping the established connections a
+# restart would.
+- name: Reload haproxy
+  ansible.builtin.service:
+    name: haproxy
+    state: reloaded

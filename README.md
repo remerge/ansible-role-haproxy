@@ -235,6 +235,79 @@ haproxy_listen_default_balance: roundrobin
 haproxy_listens: []
 ```
 
+## [Frontend, backend and resolver keys](#frontend-backend-and-resolver-keys)
+
+`haproxy_frontends` and `haproxy_backends` describe a section per entry.
+Alongside the keys of the upstream role, the following are available.
+
+`haproxy_resolvers` adds `resolvers` sections, which backend servers refer to
+by name to look their address up in DNS at runtime:
+
+```yaml
+haproxy_resolvers:
+  - name: svcdisco
+    nameservers:
+      - name: agent
+        address: 127.0.0.1:8600
+    # Rendered as one directive per key, in the order written.
+    settings:
+      accepted_payload_size: 8192
+      hold valid: 10s
+```
+
+A frontend takes several `binds` instead of `address` and `port`, a list of
+`options` instead of a single `option`, and the rule keys below. Every rule
+list keeps the order it is written in:
+
+```yaml
+haproxy_frontends:
+  - name: public
+    binds:
+      - ":80 interface external"
+      - ":443 ssl crt /etc/ssl/wildcard.pem alpn h2,http/1.1"
+    maxconn: 100000
+    options:
+      - nolinger
+    log_format: "level=info frontend=%ft src=%ci"
+    error_log_format: "level=error frontend=%ft src=%ci"
+    http_requests:
+      - deny if { path /metrics }
+    http_responses:
+      - set-header X-Content-Type-Options nosniff
+    acls:
+      - name: host_example
+        criterion: hdr(host) -i example.com
+    use_backends:
+      - backend: backend_example
+        condition: host_example
+    # Verbatim lines, for directives the role does not model.
+    extra_config:
+      - tcp-request inspect-delay 5s
+```
+
+A backend takes `extra_config` in the same way, and `server_templates` for
+servers whose address comes from DNS. A server in `servers` may carry only an
+`address`, in which case it is also used as the server name; without one, the
+address is taken from the host's facts as before:
+
+```yaml
+haproxy_backends:
+  - name: backend_example
+    port: 8010
+    options:
+      - check port 8019
+    servers:
+      - address: host01.example.com
+    server_templates:
+      - prefix: example
+        count: 4
+        fqdn: _example._http.service.consul
+        options:
+          - resolvers svcdisco
+          - init-addr last,none
+          - check
+```
+
 ## [Requirements](#requirements)
 
 - pip packages listed in [requirements.txt](https://github.com/robertdebock/ansible-role-haproxy/blob/master/requirements.txt).

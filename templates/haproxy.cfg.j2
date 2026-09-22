@@ -42,21 +42,70 @@ listen stats
     stats                uri /stats
 {% endif %}
 
+{% for resolver in haproxy_resolvers %}
+resolvers {{ resolver.name }}
+{% for nameserver in resolver.nameservers %}
+    nameserver {{ nameserver.name }} {{ nameserver.address }}
+{% endfor %}
+{% for key, value in (resolver.settings | default({})).items() %}
+    {{ key }} {{ value }}
+{% endfor %}
+
+{% endfor %}
 {% for frontend in haproxy_frontends %}
 frontend {{ frontend.name }}
+{% if frontend.binds is defined %}
+{% for bind in frontend.binds %}
+    bind {{ bind }}
+{% endfor %}
+{% else %}
     bind {{ frontend.address }}:{{ frontend.port }}{% if frontend.ssl is defined and frontend.ssl == true %} ssl{% endif %}{% if frontend.crts is defined and frontend.crts | length > 0 %} {% for crt in frontend.crts %} crt {{ crt }}{% endfor %}{% endif %}
 
+{% endif %}
+{% if frontend.maxconn is defined %}
+    maxconn {{ frontend.maxconn }}
+{% endif %}
 {% if frontend.default_backend is defined %}
     default_backend {{ frontend.default_backend }}
 {% endif %}
     mode {{ frontend.mode | default('http') }}
-    option {{ frontend.option | default('httplog') }}
+{% if frontend.options is defined %}
+{% for option in frontend.options %}
+    option {{ option }}
+{% endfor %}
+{% elif frontend.option is defined %}
+    option {{ frontend.option }}
+{% else %}
+    option httplog
+{% endif %}
+{% if frontend.log_format is defined %}
+    log-format "{{ frontend.log_format }}"
+{% endif %}
+{% if frontend.error_log_format is defined %}
+    error-log-format "{{ frontend.error_log_format }}"
+{% endif %}
+{% for http_request in frontend.http_requests | default([]) %}
+    http-request {{ http_request }}
+{% endfor %}
 {% if frontend.http_request is defined %}
     http-request {{ frontend.http_request }}
 {% endif %}
+{% for http_response in frontend.http_responses | default([]) %}
+    http-response {{ http_response }}
+{% endfor %}
+{% for acl in frontend.acls | default([]) %}
+    acl {{ acl.name }} {{ acl.criterion }}
+{% endfor %}
+{% for use_backend in frontend.use_backends | default([]) %}
+    use_backend {{ use_backend.backend }} if {{ use_backend.condition }}
+{% endfor %}
+{% for line in frontend.extra_config | default([]) %}
+    {{ line }}
+{% endfor %}
 {% if frontend.no_log is defined and frontend.no_log %}
     no log
 {% endif %}
+
 {% endfor %}
 
 {% for backend in haproxy_backends %}
@@ -76,14 +125,25 @@ backend {{ backend.name }}
 {% if backend.http_send_name_header is defined %}
     http-send-name-header {{ backend.http_send_name_header }}
 {% endif %}
-{% for server in backend.servers %}
-{% if server.name is defined %}
-    server {{ server.name }} {{ server.address | default(hostvars[server.name]['ansible_facts']['default_ipv4']['address']) }}:{{ server.port | default(backend.port) }} {% if backend.options is defined %}{{ backend.options | join(' ') }}{% endif %}
+{% for line in backend.extra_config | default([]) %}
+    {{ line }}
+{% endfor %}
+{% for server in backend.servers | default([]) %}
+{% if server is mapping %}
+{% set server_address = server.address if server.address is defined else hostvars[server.name]['ansible_facts']['default_ipv4']['address'] %}
+{% set server_name = server.name if server.name is defined else server.address %}
+{% set server_port = server.port if server.port is defined else backend.port %}
+    server {{ server_name }} {{ server_address }}:{{ server_port }} {% if backend.options is defined %}{{ backend.options | join(' ') }}{% endif %}
 {% elif ansible_facts['default_ipv4'] is defined %}
     server {{ server }} {{ hostvars[server]['ansible_facts']['default_ipv4']['address'] }}:{{ backend.port }} {% if backend.options is defined %}{{ backend.options | join(' ') }}{% endif %}
 {% endif %}
 
 {% endfor %}
+{% for server_template in backend.server_templates | default([]) %}
+    server-template {{ server_template.prefix }} {{ server_template.count }} {{ server_template.fqdn }}{% if server_template.options is defined %} {{ server_template.options | join(' ') }}{% endif %}
+
+{% endfor %}
+
 {% endfor %}
 
 {% for listen in haproxy_listens %}
