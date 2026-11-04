@@ -14,6 +14,10 @@ argument_specs:
         type: "str"
         default: "http"
         description: "The default mode for HAProxy (http or tcp)."
+      haproxy_globals:
+        type: "list"
+        default: ['log stdout format raw daemon', 'chroot /var/lib/haproxy', 'user haproxy', 'group haproxy', 'stats socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners']
+        description: "A list of global settings for HAProxy"
       haproxy_options:
         type: "list"
         default: ["httplog", "dontlognull", "http-server-close", "forwardfor except 127.0.0.0/8", "redispatch"]

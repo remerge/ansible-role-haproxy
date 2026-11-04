@@ -28,6 +28,7 @@ This example is taken from [`molecule/default/converge.yml`](https://github.com/
           address: "*"
           port: 443
           default_backend: backend
+          http_response: set-header Strict-Transport-Security max-age=63072000
           ssl: true
           crts:
             - /tmp/haproxy.keycrt
@@ -210,6 +211,12 @@ haproxy_stats_bind_addr: "0.0.0.0"
 
 # Default setttings for HAProxy.
 haproxy_mode: http
+haproxy_globals:
+  - log stdout format raw daemon
+  - chroot /var/lib/haproxy
+  - user haproxy
+  - group haproxy
+  - stats socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners
 haproxy_options:
   - httplog
   - dontlognull
@@ -264,12 +271,12 @@ Here is an overview of related roles:
 
 This role has been tested on these [container images](https://hub.docker.com/u/robertdebock):
 
-| container                                                   | tags         |
-| ----------------------------------------------------------- | ------------ |
-| [EL](https://hub.docker.com/r/robertdebock/enterpriselinux) | 9            |
-| [Debian](https://hub.docker.com/r/robertdebock/debian)      | all          |
-| [Fedora](https://hub.docker.com/r/robertdebock/fedora)      | all          |
-| [Ubuntu](https://hub.docker.com/r/robertdebock/ubuntu)      | noble, jammy |
+| container                                                   | tags                       |
+| ----------------------------------------------------------- | -------------------------- |
+| [Debian](https://hub.docker.com/r/robertdebock/debian)      | bullseye, bookworm, trixie |
+| [EL](https://hub.docker.com/r/robertdebock/enterpriselinux) | all                        |
+| [Fedora](https://hub.docker.com/r/robertdebock/fedora)      | 42                         |
+| [Ubuntu](https://hub.docker.com/r/robertdebock/ubuntu)      | jammy, noble               |
 
 The minimum version of Ansible required is 2.12, tests have been done on:
 
