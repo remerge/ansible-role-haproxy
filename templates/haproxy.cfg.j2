@@ -4,11 +4,9 @@
 {{ haproxy_config }}
 {% else %}
 global
-    log         stdout format raw daemon
-    chroot      /var/lib/haproxy
-    user        haproxy
-    group       haproxy
-    stats       socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners
+{% for global in haproxy_globals %}
+    {{ global }}
+{% endfor %}
 {% for key, value in haproxy_global_config.items() %}
     {{ key }} {{ value }}
 {% endfor %}
@@ -44,7 +42,7 @@ listen stats
 
 {% for frontend in haproxy_frontends %}
 frontend {{ frontend.name }}
-    bind {{ frontend.address }}:{{ frontend.port }}{% if frontend.ssl is defined and frontend.ssl == true %} ssl{% endif %}{% if frontend.crts is defined and frontend.crts | length > 0 %} {% for crt in frontend.crts %} crt {{ crt }}{% endfor %}{% endif %}
+    bind {{ frontend.address }}:{{ frontend.port }}{% if frontend.address == '::' %} v6only{% endif %}{% if frontend.ssl is defined and frontend.ssl == true %} ssl{% endif %}{% if frontend.crts is defined and frontend.crts | length > 0 %} {% for crt in frontend.crts %} crt {{ crt }}{% endfor %}{% endif %}
 
 {% if frontend.default_backend is defined %}
     default_backend {{ frontend.default_backend }}
@@ -53,6 +51,9 @@ frontend {{ frontend.name }}
     option {{ frontend.option | default('httplog') }}
 {% if frontend.http_request is defined %}
     http-request {{ frontend.http_request }}
+{% endif %}
+{% if frontend.http_response is defined %}
+    http-response {{ frontend.http_response }}
 {% endif %}
 {% if frontend.no_log is defined and frontend.no_log %}
     no log

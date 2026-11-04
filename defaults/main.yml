@@ -63,6 +63,12 @@ haproxy_global_config: {}
 
 # Default setttings for HAProxy.
 haproxy_mode: http
+haproxy_globals:
+  - log stdout format raw daemon
+  - chroot /var/lib/haproxy
+  - user haproxy
+  - group haproxy
+  - stats socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners
 haproxy_options:
   - httplog
   - dontlognull
