@@ -27,7 +27,8 @@ argument_specs:
         description: "A list of global settings for HAProxy"
       haproxy_options:
         type: "list"
-        default: ["httplog", "dontlognull", "http-server-close", "forwardfor except 127.0.0.0/8", "redispatch"]
+        default:
+          ["httplog", "dontlognull", "dontlog-normal", "http-keep-alive", "forwardfor except 127.0.0.0/8", "redispatch"]
         description: "A list of options for HAProxy."
       haproxy_stats:
         type: "bool"
