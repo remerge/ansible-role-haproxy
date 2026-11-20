@@ -7,59 +7,44 @@
   run_once: true
   delegate_to: localhost
 
-- name: Add repository for HAProxy
+- name: Remove the Zenetys repository
   ansible.builtin.yum_repository:
     name: zenetys-latest
-    description: "Packages by ZENETYS for Enterprise Linux $releasever - $basearch (latest)"
-    baseurl: "https://packages.zenetys.com/latest/redhat/$releasever/RPMS/$basearch"
-    gpgcheck: false
-    exclude: "rsyslog8z"
-
-- name: Uninstall legacy haproxy
-  ansible.builtin.package:
-    name: haproxy
     state: absent
-  notify:
-    - Restart haproxy
+
+- name: Add the HAProxy Technologies repository
+  ansible.builtin.yum_repository:
+    name: haproxy-{{ haproxy_branch }}
+    description: "HAProxy {{ haproxy_branch }} performance packages by HAProxy Technologies"
+    baseurl: "https://cdn.haproxy.com/download/haproxy/performance/rhel/{{ haproxy_branch }}/el$releasever/$basearch"
+    gpgcheck: true
+    gpgkey: https://cdn.haproxy.com/download/haproxy/HAPROXY-key-community.asc
 
 - name: Gather package facts
   ansible.builtin.package_facts:
 
-# Zenetys ships every HAProxy branch and its +quic build as its own package.
-# They install the same files and declare no conflict, so installing
-# haproxy_package next to another build fails. dnf swap replaces the other
-# build in one transaction.
-- name: Replace other HAProxy builds
-  vars:
-    haproxy_other_builds: >-
-      {{ ansible_facts.packages | select('match', '^haproxy[0-9]+z') |
-         reject('equalto', haproxy_package) | list }}
-  when: haproxy_other_builds | length > 0
-  block:
-    # The swap moves a changed /etc/sysconfig/haproxy aside as .rpmsave and
-    # installs the default. haproxy.cfg is templated below; keep the rest.
-    - name: Read the HAProxy service settings
-      ansible.builtin.slurp:
-        src: /etc/sysconfig/haproxy
-      register: haproxy_sysconfig
-      failed_when: false
+# haproxy_package provides "haproxy"; remove only a package of that name.
+- name: Uninstall legacy haproxy
+  ansible.builtin.package:
+    name: haproxy
+    state: absent
+  when: "'haproxy' in ansible_facts.packages"
+  notify:
+    - Restart haproxy
 
-    - name: Swap the other HAProxy builds for {{ haproxy_package }}
-      ansible.builtin.command:
-        cmd: dnf --assumeyes swap {{ item | quote }} {{ haproxy_package | quote }}
-      loop: "{{ haproxy_other_builds }}"
-      changed_when: true
-      notify:
-        - Restart haproxy
-
-    - name: Restore the HAProxy service settings
-      ansible.builtin.copy:
-        content: "{{ haproxy_sysconfig.content | b64decode }}"
-        dest: /etc/sysconfig/haproxy
-        owner: root
-        group: root
-        mode: "0644"
-      when: haproxy_sysconfig.content is defined
+# The Zenetys builds (haproxy30z+quic, ...) install the same files as
+# haproxy_package but declare no conflict with it, so installing it next to
+# them fails. dnf swap replaces them in one transaction. The swap also resets
+# /etc/sysconfig/haproxy to the package default, which is what the
+# haproxy.service of haproxy_package expects: it loads /etc/haproxy/conf.d
+# itself.
+- name: Swap the Zenetys HAProxy builds for {{ haproxy_package }}
+  ansible.builtin.command:
+    cmd: dnf --assumeyes swap {{ item | quote }} {{ haproxy_package | quote }}
+  loop: "{{ ansible_facts.packages | select('match', '^haproxy[0-9]+z') | list }}"
+  changed_when: true
+  notify:
+    - Restart haproxy
 
 - name: Install haproxy
   ansible.builtin.package:

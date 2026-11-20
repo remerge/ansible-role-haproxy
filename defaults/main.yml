@@ -1,10 +1,11 @@
 ---
 # defaults file for haproxy
 
-# The Zenetys package to install: one per HAProxy branch, each with and
-# without QUIC (haproxy34z, haproxy34z+quic, ...). The role replaces any other
-# Zenetys HAProxy build on the host with it. 3.4 is the latest branch.
-haproxy_package: haproxy34z
+# HAProxy Technologies' performance packages: one repository per branch
+# (ha32, ha33, ha34, ...), haproxy-awslc built against AWS-LC. The role replaces
+# Zenetys builds with it. ha34 is the latest branch.
+haproxy_branch: ha34
+haproxy_package: haproxy-awslc
 
 # Complete HAProxy configuration as a string (alternative to individual parameters)
 # If set, this will be used instead of individual parameters
