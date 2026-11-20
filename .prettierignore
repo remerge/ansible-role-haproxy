@@ -2,3 +2,12 @@
 .copier-vars.yml
 .github/prompts/
 CHANGELOG.md
+
+# Files shared with upstream (robertdebock/ansible-role-haproxy) keep upstream's
+# formatting, so merges from upstream do not conflict on whitespace.
+README.md
+defaults/
+handlers/
+meta/
+tasks/
+templates/
