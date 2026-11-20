@@ -50,6 +50,8 @@
   ansible.builtin.package:
     name: "{{ haproxy_package }}"
     state: present
+  # In check mode the repository above is not added yet
+  ignore_errors: "{{ ansible_check_mode }}"
   notify:
     - Restart haproxy
 
