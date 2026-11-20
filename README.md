@@ -2,9 +2,9 @@
 
 Install and configure haproxy on your system.
 
-| GitHub                                                                                                                                                                 | GitLab                                                                                                                                                     | Downloads                                                                                                                   | Version                                                                                                                                                   |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [![github](https://github.com/robertdebock/ansible-role-haproxy/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-haproxy/actions) | [![gitlab](https://gitlab.com/robertdebock-iac/ansible-role-haproxy/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-haproxy) | [![downloads](https://img.shields.io/ansible/role/d/robertdebock/haproxy)](https://galaxy.ansible.com/robertdebock/haproxy) | [![Version](https://img.shields.io/github/release/robertdebock/ansible-role-haproxy.svg)](https://github.com/robertdebock/ansible-role-haproxy/releases/) |
+|GitHub|GitLab|Downloads|Version|
+|------|------|---------|-------|
+|[![github](https://github.com/robertdebock/ansible-role-haproxy/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-haproxy/actions)|[![gitlab](https://gitlab.com/robertdebock-iac/ansible-role-haproxy/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-haproxy)|[![downloads](https://img.shields.io/ansible/role/d/robertdebock/haproxy)](https://galaxy.ansible.com/robertdebock/haproxy)|[![Version](https://img.shields.io/github/release/robertdebock/ansible-role-haproxy.svg)](https://github.com/robertdebock/ansible-role-haproxy/releases/)|
 
 ## [Example Playbook](#example-playbook)
 
@@ -56,7 +56,7 @@ This example is taken from [`molecule/default/converge.yml`](https://github.com/
           #   expect: status 200
           balance: roundrobin
           # You can refer to hosts in an Ansible group.
-          # The `ansible_facts['default_ipv4']` will be used as an address to connect to.
+          # The `ansible_default_ipv4` will be used as an address to connect to.
           servers: "{{ groups['all'] }}"
           port: 8080
           options:
@@ -92,7 +92,7 @@ This example is taken from [`molecule/default/converge.yml`](https://github.com/
           listen_port: 8081
           balance: roundrobin
           # You can refer to hosts in an Ansible group.
-          # The `ansible_facts['default_ipv4']` will be used as an address to connect to.
+          # The `ansible_default_ipv4` will be used as an address to connect to.
           servers: "{{ groups['all'] }}"
           port: 8080
           options:
@@ -133,12 +133,12 @@ The machine needs to be prepared. In CI this is done using [`molecule/default/pr
   post_tasks:
     - name: Place health check
       ansible.builtin.copy:
-        content: "ok"
+        content: 'ok'
         dest: "{{ httpd_data_directory }}/health.html"
 
     - name: Place sample page
       ansible.builtin.copy:
-        content: "Hello world!"
+        content: 'Hello world!'
         dest: "{{ httpd_data_directory }}/index.html"
 ```
 
@@ -151,6 +151,12 @@ The default values for the variables are set in [`defaults/main.yml`](https://gi
 ```yaml
 ---
 # defaults file for haproxy
+
+# HAProxy Technologies' performance packages: one repository per branch
+# (ha32, ha33, ha34, ...), haproxy-awslc built against AWS-LC. The role replaces
+# Zenetys builds with it. ha34 is the latest branch.
+haproxy_branch: ha34
+haproxy_package: haproxy-awslc
 
 # Complete HAProxy configuration as a string (alternative to individual parameters)
 # If set, this will be used instead of individual parameters
@@ -209,14 +215,20 @@ haproxy_stats: true
 haproxy_stats_port: 1936
 haproxy_stats_bind_addr: "0.0.0.0"
 
-# Default setttings for HAProxy.
+# Global settings for HAProxy.
+haproxy_global_config: {}
+
+# Default settings for HAProxy.
 haproxy_mode: http
 haproxy_globals:
-  - log stdout format raw daemon
+  - log 127.0.0.1 local2
   - chroot /var/lib/haproxy
+  - pidfile /var/run/haproxy.pid
+  - maxconn 4000
   - user haproxy
   - group haproxy
-  - stats socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners
+  - daemon
+  - stats socket /var/lib/haproxy/stats
 haproxy_options:
   - httplog
   - dontlognull
@@ -251,15 +263,15 @@ haproxy_listens: []
 
 The following roles are used to prepare a system. You can prepare your system in another way.
 
-| Requirement                                                                                 | GitHub                                                                                                                                                                                                  | GitLab                                                                                                                                                                                      |
-| ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [robertdebock.bootstrap](https://galaxy.ansible.com/robertdebock/bootstrap)                 | [![Build Status GitHub](https://github.com/robertdebock/ansible-role-bootstrap/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-bootstrap/actions)                 | [![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-bootstrap/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-bootstrap)                 |
-| [robertdebock.buildtools](https://galaxy.ansible.com/robertdebock/buildtools)               | [![Build Status GitHub](https://github.com/robertdebock/ansible-role-buildtools/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-buildtools/actions)               | [![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-buildtools/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-buildtools)               |
-| [robertdebock.core_dependencies](https://galaxy.ansible.com/robertdebock/core_dependencies) | [![Build Status GitHub](https://github.com/robertdebock/ansible-role-core_dependencies/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-core_dependencies/actions) | [![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-core_dependencies/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-core_dependencies) |
-| [robertdebock.epel](https://galaxy.ansible.com/robertdebock/epel)                           | [![Build Status GitHub](https://github.com/robertdebock/ansible-role-epel/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-epel/actions)                           | [![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-epel/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-epel)                           |
-| [robertdebock.httpd](https://galaxy.ansible.com/robertdebock/httpd)                         | [![Build Status GitHub](https://github.com/robertdebock/ansible-role-httpd/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-httpd/actions)                         | [![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-httpd/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-httpd)                         |
-| [robertdebock.openssl](https://galaxy.ansible.com/robertdebock/openssl)                     | [![Build Status GitHub](https://github.com/robertdebock/ansible-role-openssl/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-openssl/actions)                     | [![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-openssl/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-openssl)                     |
-| [robertdebock.python_pip](https://galaxy.ansible.com/robertdebock/python_pip)               | [![Build Status GitHub](https://github.com/robertdebock/ansible-role-python_pip/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-python_pip/actions)               | [![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-python_pip/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-python_pip)               |
+| Requirement | GitHub | GitLab |
+|-------------|--------|--------|
+|[robertdebock.bootstrap](https://galaxy.ansible.com/robertdebock/bootstrap)|[![Build Status GitHub](https://github.com/robertdebock/ansible-role-bootstrap/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-bootstrap/actions)|[![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-bootstrap/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-bootstrap)|
+|[robertdebock.buildtools](https://galaxy.ansible.com/robertdebock/buildtools)|[![Build Status GitHub](https://github.com/robertdebock/ansible-role-buildtools/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-buildtools/actions)|[![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-buildtools/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-buildtools)|
+|[robertdebock.core_dependencies](https://galaxy.ansible.com/robertdebock/core_dependencies)|[![Build Status GitHub](https://github.com/robertdebock/ansible-role-core_dependencies/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-core_dependencies/actions)|[![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-core_dependencies/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-core_dependencies)|
+|[robertdebock.epel](https://galaxy.ansible.com/robertdebock/epel)|[![Build Status GitHub](https://github.com/robertdebock/ansible-role-epel/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-epel/actions)|[![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-epel/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-epel)|
+|[robertdebock.httpd](https://galaxy.ansible.com/robertdebock/httpd)|[![Build Status GitHub](https://github.com/robertdebock/ansible-role-httpd/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-httpd/actions)|[![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-httpd/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-httpd)|
+|[robertdebock.openssl](https://galaxy.ansible.com/robertdebock/openssl)|[![Build Status GitHub](https://github.com/robertdebock/ansible-role-openssl/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-openssl/actions)|[![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-openssl/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-openssl)|
+|[robertdebock.python_pip](https://galaxy.ansible.com/robertdebock/python_pip)|[![Build Status GitHub](https://github.com/robertdebock/ansible-role-python_pip/workflows/Ansible%20Molecule/badge.svg)](https://github.com/robertdebock/ansible-role-python_pip/actions)|[![Build Status GitLab](https://gitlab.com/robertdebock-iac/ansible-role-python_pip/badges/master/pipeline.svg)](https://gitlab.com/robertdebock-iac/ansible-role-python_pip)|
 
 ## [Context](#context)
 
@@ -272,12 +284,12 @@ Here is an overview of related roles:
 
 This role has been tested on these [container images](https://hub.docker.com/u/robertdebock):
 
-| container                                                   | tags         |
-| ----------------------------------------------------------- | ------------ |
-| [Debian](https://hub.docker.com/r/robertdebock/debian)      | all          |
-| [EL](https://hub.docker.com/r/robertdebock/enterpriselinux) | all          |
-| [Fedora](https://hub.docker.com/r/robertdebock/fedora)      | all          |
-| [Ubuntu](https://hub.docker.com/r/robertdebock/ubuntu)      | jammy, noble |
+|container|tags|
+|---------|----|
+|[Debian](https://hub.docker.com/r/robertdebock/debian)|all|
+|[EL](https://hub.docker.com/r/robertdebock/enterpriselinux)|all|
+|[Fedora](https://hub.docker.com/r/robertdebock/fedora)|all|
+|[Ubuntu](https://hub.docker.com/r/robertdebock/ubuntu)|jammy, noble|
 
 The minimum version of Ansible required is 2.12, tests have been done on:
 

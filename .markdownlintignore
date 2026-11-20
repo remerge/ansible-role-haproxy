@@ -1,0 +1,3 @@
+# README.md is shared with upstream (robertdebock/ansible-role-haproxy) and
+# keeps upstream's formatting, so merges from upstream do not conflict.
+README.md

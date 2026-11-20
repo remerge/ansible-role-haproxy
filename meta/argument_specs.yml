@@ -1,4 +1,5 @@
 ---
+
 argument_specs:
   main:
     short_description: "Install and configure haproxy on your system."
@@ -16,19 +17,11 @@ argument_specs:
         description: "The default mode for HAProxy (http or tcp)."
       haproxy_globals:
         type: "list"
-        default:
-          [
-            "log stdout format raw daemon",
-            "chroot /var/lib/haproxy",
-            "user haproxy",
-            "group haproxy",
-            "stats socket /var/lib/haproxy/stats mode 660 level admin expose-fd listeners",
-          ]
+        default: ['log 127.0.0.1 local2', 'chroot /var/lib/haproxy', 'pidfile /var/run/haproxy.pid', 'maxconn 4000', 'user haproxy', 'group haproxy', 'daemon', 'stats socket /var/lib/haproxy/stats']
         description: "A list of global settings for HAProxy"
       haproxy_options:
         type: "list"
-        default:
-          ["httplog", "dontlognull", "dontlog-normal", "http-keep-alive", "forwardfor except 127.0.0.0/8", "redispatch"]
+        default: ["httplog", "dontlognull", "http-server-close", "forwardfor except 127.0.0.0/8", "redispatch"]
         description: "A list of options for HAProxy."
       haproxy_stats:
         type: "bool"
@@ -101,4 +94,12 @@ argument_specs:
       haproxy_global_config:
         type: "dict"
         default: {}
-        description: "Additional global configuration settings."
+        description: "Additional global settings for HAProxy, rendered as key value."
+      haproxy_branch:
+        type: "str"
+        default: "ha34"
+        description: "The HAProxy Technologies performance package branch (repository)."
+      haproxy_package:
+        type: "str"
+        default: "haproxy-awslc"
+        description: "The HAProxy package to install from that repository."

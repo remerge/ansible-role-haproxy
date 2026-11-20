@@ -1,4 +1,5 @@
 ---
+
 - name: assert | Test haproxy_config usage
   ansible.builtin.assert:
     that:
@@ -8,7 +9,8 @@
     - haproxy_config is defined
 
 - name: assert | Test individual parameters
-  when: haproxy_config | length == 0
+  when:
+    haproxy_config | length == 0
   block:
     - name: assert | Test haproxy_mode
       ansible.builtin.assert:
