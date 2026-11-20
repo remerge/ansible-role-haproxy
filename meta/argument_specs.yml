@@ -50,6 +50,10 @@ argument_specs:
         type: "str"
         default: "10s"
         description: "The timeout for HTTP requests."
+      haproxy_timeout_queue:
+        type: "str"
+        default: "10s"
+        description: "The timeout for queued connections."
       haproxy_timeout_connect:
         type: "str"
         default: "10s"
