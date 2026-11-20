@@ -67,7 +67,7 @@ haproxy_stats_bind_addr: "0.0.0.0"
 # Global settings for HAProxy.
 haproxy_global_config: {}
 
-# Default setttings for HAProxy.
+# Default settings for HAProxy.
 haproxy_mode: http
 haproxy_globals:
   - log stdout format raw daemon
