@@ -4,7 +4,9 @@
 - name: Reboot
   ansible.builtin.reboot:
 
+# daemon_reload picks up the unit file of a newly installed package.
 - name: Restart haproxy
-  ansible.builtin.service:
+  ansible.builtin.systemd:
     name: haproxy
     state: restarted
+    daemon_reload: true

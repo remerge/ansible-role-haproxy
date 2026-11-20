@@ -7,18 +7,42 @@
   run_once: true
   delegate_to: localhost
 
-- name: Add repository for HAProxy
+- name: Remove the Zenetys repository
   ansible.builtin.yum_repository:
     name: zenetys-latest
-    description: "Packages by ZENETYS for Enterprise Linux $releasever - $basearch (latest)"
-    baseurl: "https://packages.zenetys.com/latest/redhat/$releasever/RPMS/$basearch"
-    gpgcheck: false
-    exclude: "rsyslog8z"
+    state: absent
 
+- name: Add the HAProxy Technologies repository
+  ansible.builtin.yum_repository:
+    name: haproxy-{{ haproxy_branch }}
+    description: "HAProxy {{ haproxy_branch }} performance packages by HAProxy Technologies"
+    baseurl: "https://cdn.haproxy.com/download/haproxy/performance/rhel/{{ haproxy_branch }}/el$releasever/$basearch"
+    gpgcheck: true
+    gpgkey: https://cdn.haproxy.com/download/haproxy/HAPROXY-key-community.asc
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+
+# haproxy_package provides "haproxy"; remove only a package of that name.
 - name: Uninstall legacy haproxy
   ansible.builtin.package:
     name: haproxy
     state: absent
+  when: "'haproxy' in ansible_facts.packages"
+  notify:
+    - Restart haproxy
+
+# The Zenetys builds (haproxy30z+quic, ...) install the same files as
+# haproxy_package but declare no conflict with it, so installing it next to
+# them fails. dnf swap replaces them in one transaction. The swap also resets
+# /etc/sysconfig/haproxy to the package default, which is what the
+# haproxy.service of haproxy_package expects: it loads /etc/haproxy/conf.d
+# itself.
+- name: Swap the Zenetys HAProxy builds for {{ haproxy_package }}
+  ansible.builtin.command:
+    cmd: dnf --assumeyes swap {{ item | quote }} {{ haproxy_package | quote }}
+  loop: "{{ ansible_facts.packages | select('match', '^haproxy[0-9]+z') | list }}"
+  changed_when: true
   notify:
     - Restart haproxy
 
@@ -26,6 +50,8 @@
   ansible.builtin.package:
     name: "{{ haproxy_package }}"
     state: present
+  # In check mode the repository above is not added yet
+  ignore_errors: "{{ ansible_check_mode }}"
   notify:
     - Restart haproxy
 
