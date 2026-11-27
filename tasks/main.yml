@@ -38,9 +38,18 @@
 # /etc/sysconfig/haproxy to the package default, which is what the
 # haproxy.service of haproxy_package expects: it loads /etc/haproxy/conf.d
 # itself.
+#
+# The swap runs without package scriptlets. The Zenetys package's removal
+# script runs `systemctl disable --now haproxy`, which stops HAProxy for the
+# whole transaction (SYSTEMD_OFFLINE does not prevent that on EL9). Without
+# it, the old process keeps serving until the handler restarts it into the
+# new binary, once, after the check below. The new package's scripts only
+# create the haproxy user and enable the unit, which this role does itself.
 - name: Swap the Zenetys HAProxy builds for {{ haproxy_package }}
   ansible.builtin.command:
-    cmd: dnf --assumeyes swap {{ item | quote }} {{ haproxy_package | quote }}
+    cmd: >-
+      dnf --assumeyes --setopt=tsflags=noscripts
+      swap {{ item | quote }} {{ haproxy_package | quote }}
   loop: "{{ ansible_facts.packages | select('match', '^haproxy[0-9]+z') | list }}"
   changed_when: true
   notify:
@@ -98,6 +107,28 @@
         persistent: true
       notify:
         - Reboot
+
+# The handlers below restart HAProxy into whatever is on disk now, so the whole
+# configuration is checked first with the installed binary, including the
+# files that haproxy_config_check_args adds (a conf.d directory, for example).
+# With SELinux enabled the check runs in HAProxy's own domain: the HAProxy
+# Technologies packages compile regexes with PCRE2 JIT, which SELinux denies
+# haproxy_t (no execmem). The same configuration passes `haproxy -c` as root
+# and fails when the service starts.
+- name: Check the HAProxy configuration
+  ansible.builtin.command:
+    argv: >-
+      {{ (['runcon', 'system_u:system_r:haproxy_t:s0']
+          if ansible_facts['selinux']['status'] | default('disabled') == 'enabled'
+          else [])
+         + ['haproxy', '-c', '-f', '/etc/haproxy/haproxy.cfg']
+         + haproxy_config_check_args }}
+    # haproxy_t may not read the caller's working directory.
+    chdir: /
+  changed_when: false
+  check_mode: false
+  # In check mode haproxy_package may not be installed yet
+  ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers

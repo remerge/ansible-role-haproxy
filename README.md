@@ -158,6 +158,10 @@ The default values for the variables are set in [`defaults/main.yml`](https://gi
 haproxy_branch: ha34
 haproxy_package: haproxy-awslc
 
+# Further arguments for the configuration check that runs before a restart,
+# for files the unit loads besides haproxy.cfg, e.g. ["-f", "/etc/haproxy/conf.d"].
+haproxy_config_check_args: []
+
 # Complete HAProxy configuration as a string (alternative to individual parameters)
 # If set, this will be used instead of individual parameters
 # haproxy_config: |
