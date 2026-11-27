@@ -103,3 +103,8 @@ argument_specs:
         type: "str"
         default: "haproxy-awslc"
         description: "The HAProxy package to install from that repository."
+      haproxy_config_check_args:
+        type: "list"
+        elements: "str"
+        default: []
+        description: "Further arguments for the configuration check before a restart, e.g. the conf.d directory the unit also loads."
